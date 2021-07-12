@@ -26,35 +26,56 @@ def gol_kernel(oldgrid, newgrid, numrows, numcols):
 		#creates ring around new grid based on old grid's corners and sides
 		if x == 1 and y == 1:
 			newgrid[numrows-1][numcols-1] = oldgrid[1][1]
-			print("BOTTOM RIGHT CORNER")
 		if x == (numrows-2) and y == (numcols-2):
 			newgrid[0][0] = oldgrid[numrows-2][numcols-2]
-			print("TOP LEFT CORNER")
 		if x == 1 and y == (numcols - 2):
 			newgrid[numrows-1][0] = oldgrid[1][numcols-2]
-			print("BOTTOM LEFT CORNER")
 		if x == (numrows-2) and y == 1:
 			newgrid[0][numcols-1] = oldgrid[numrows-2][1]
-			print("TOP RIGHT CORNER")
 		if y == 1:
 			newgrid[x][numcols-1] = oldgrid[x][1]
-			print("RIGHT SIDE")
 		if y == (numcols - 2):
 			newgrid[x][0] = oldgrid[x][numcols - 2]
-			print("LEFT SIDE")
 		if x == (numrows - 2):
 			newgrid[0][y] = oldgrid[numrows - 2][y]
-			print("TOP SIDE")
 		if x == 1:
 			newgrid[numrows-1][y] = oldgrid[1][y]
-			print("BOTTOM SIDE")
 
 		#rules regulating cell life and death are enforced
+
+		numaliveneighbors = 0
+		if oldgrid[x-1][y-1] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x-1][y] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x-1][y+1] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x][y-1] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x][y+1] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x+1][y-1] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x+1][y] == 1:
+			numaliveneighbors += 1
+		if oldgrid[x+1][y+1] == 1:
+			numaliveneighbors += 1
+
+		if oldgrid[x][y] == 0:
+			if numaliveneighbors == 3:
+				newgrid[x][y] = 1
+			else:
+				newgrid[x][y] = 0
+		if oldgrid[x][y] == 1:
+			if numaliveneighbors == 2 or numaliveneighbors == 3:
+				newgrid[x][y] = 1
+			else:
+				newgrid[x][y] = 0		
 
 #name of input file, number of iterations for GOL to go through, output file name (if needed), 
 #and option to determine whether program will display generations or print them to a file
 infile = sys.argv[1]
-iters = sys.argv[2]
+iters = int(sys.argv[2])
 outfile = sys.argv[3]
 disp = sys.argv[4]
 
@@ -83,7 +104,13 @@ blockspergrid_x = math.ceil(grid1.shape[0] / threadsperblock[0])
 blockspergrid_y = math.ceil(grid1.shape[1] / threadsperblock[1])
 blockspergrid = (blockspergrid_x, blockspergrid_y)
 
-gol_kernel[blockspergrid, threadsperblock](grid1, grid2, numrows, numcols)
-print("HELLO1")
-cuda.synchronize()
-print(grid2)
+for x in range(iters):
+	if (x % 2) == 0: 
+		gol_kernel[blockspergrid, threadsperblock](grid1, grid2, numrows, numcols)
+	else:
+		gol_kernel[blockspergrid, threadsperblock](grid2, grid1, numrows, numcols)		
+	cuda.synchronize()
+	if (x % 2) == 0:
+		print(grid2)
+	else:
+		print(grid1)
