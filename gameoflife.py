@@ -99,7 +99,7 @@ initialize(grid1, numalivecells, f)
 
 #call to cuda kernel
 
-threadsperblock = (16, 16)
+threadsperblock = (numrows, numcols)
 blockspergrid_x = math.ceil(grid1.shape[0] / threadsperblock[0])
 blockspergrid_y = math.ceil(grid1.shape[1] / threadsperblock[1])
 blockspergrid = (blockspergrid_x, blockspergrid_y)
@@ -114,3 +114,4 @@ for x in range(iters):
 		print(grid2)
 	else:
 		print(grid1)
+	print(' ')
